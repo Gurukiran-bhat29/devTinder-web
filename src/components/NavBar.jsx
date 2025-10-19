@@ -1,17 +1,31 @@
+import axios from "axios";
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { removeUser } from "../utils/userSlice";
+import { BASE_URL } from "../utils/constants";
 
 const NavBar = () => {
   const [theme, setTheme] = useState("light");
   const user = useSelector((state) => state.user);
-  console.log("Current user:", user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
   };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(BASE_URL + '/logout', {}, { withCredentials: true });
+      dispatch(removeUser());
+      return navigate('/login');
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  }
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -58,7 +72,7 @@ const NavBar = () => {
                   <a>Settings</a>
                 </li>
                 <li>
-                  <a>Logout</a>
+                  <a onClick={handleLogout}>Logout</a>
                 </li>
               </ul>
             </div>
