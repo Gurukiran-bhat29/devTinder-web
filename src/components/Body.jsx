@@ -14,7 +14,7 @@ const Body = () => {
 
   const fetchUser = async () => {
     if (!userData) return;
-    
+
     try {
       const res = await axios.get(BASE_URL + "/profile/view", {
         withCredentials: true,
@@ -23,7 +23,7 @@ const Body = () => {
       dispatch(addUser(res.data));
     } catch (error) {
       if (error?.status === 401) {
-        navigate("/login");
+        return navigate("/login");
       }
       console.error("Error fetching profile data:", error);
     }
