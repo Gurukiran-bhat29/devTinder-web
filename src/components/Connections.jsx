@@ -28,13 +28,13 @@ const Connections = () => {
   if (connections.length === 0) {
     return <label className="font-bold text-xl">No connection Found</label>;
   }
-  console.log("Connections:", connections);
+  
   return (
     <div className="text-center mt-10">
       <label className="font-bold text-xl">Connections</label>
 
       {connections.map((connection) => {
-        const { _id, firstName, lastName, emailId, photoUrl, about } =
+        const { _id, firstName, lastName, photoUrl, about } =
           connection;
         return (
           <div key={_id} className="flex m-4 p-4 border rounded-md border-gray-500">
