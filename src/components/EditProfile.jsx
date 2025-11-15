@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
@@ -6,10 +6,10 @@ import { BASE_URL } from "../utils/constants";
 import UserCard from "./UserCard";
 
 const EditProfile = ({ user }) => {
-  const [firstName, setFirstName] = React.useState(user.firstName);
-  const [lastName, setLastName] = React.useState(user.lastName);
-  const [photoUrl, setPhotoUrl] = React.useState(user.photoUrl);
-  const [about, setAbout] = React.useState(user.about);
+  const [firstName, setFirstName] = useState(user.firstName);
+  const [lastName, setLastName] = useState(user.lastName);
+  const [photoUrl, setPhotoUrl] = useState(user.photoUrl);
+  const [about, setAbout] = useState(user.about);
   const dispatch = useDispatch();
 
   const handleEditProfile = async () => {
