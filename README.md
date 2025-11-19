@@ -45,6 +45,16 @@
         proxy_cache_bypass $http_upgrade;
     }
 
+# Adding a custom Domain name
+
+  - purchased domain name from godaddy
+  - signup on Cloudflare & add a new domain name
+  - change the nameservers on godaddy and point it to Cloudflare
+  - wait for sometime till your nameservers are updated ~15 minutes
+  - In DNS record: Created 'A record' for devtinder.in domain map it to 43.204.96.49 IP
+  - Enable SSL for website
+
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
