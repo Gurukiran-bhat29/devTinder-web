@@ -1,3 +1,6 @@
+# Akshay Saini Github repo
+  - https://github.com/akshaymarch7/
+
 # Deployment
 
 - Signup on AWS
@@ -54,6 +57,8 @@
   - In DNS record: Created 'A record' for devtinder.in domain map it to 43.204.96.49 IP
   - Enable SSL for website
 
+# To create a .env file in server
+  - sudo nano .env and paste the content
 
 # React + Vite
 
