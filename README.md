@@ -16,7 +16,7 @@
     - sudo apt install nginx
     - sudo systemctl start nginx
     - sudo systemctl enable nginx
-    - Copy code from dist(build files) to /var/www/html/
+    - Copy code from dist(build files) to nginx http server (/var/www/html/)
     - sudo scp -r dist/* /var/www/html/
     - Enable port :80 of your instance
     - You can access the application using Public IP
@@ -25,7 +25,7 @@
   - Backend
     - updated DB password
     - allowed ec2 instance public IP on mongodb server
-    - npm intstall pm2 -g
+    - npm install pm2 -g
     - pm2 start npm --name "devTinder-backend" -- start
     - pm2 logs
     - pm2 list, pm2 flush <name> , pm2 stop <name>, pm2 delete <name>
@@ -35,7 +35,7 @@
   - Frontend = devtinder.com
   - Backend = devtinder.com:7777  ⇒  devtinder.com/api
 
-  - nginx config :
+  - nginx config (nginx proxy pass) :
 
     server_name 43.204.96.49;
 
