@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { createSocketConnection } from "../utils/socket";
 import { useSelector } from "react-redux";
@@ -9,29 +9,91 @@ const Chat = () => {
   const { targetUserId } = useParams();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const user = useSelector((store) => store.user);
   const userId = user?._id;
 
-  const fetchChatMessages = async () => {
-    const chat = await axios.get(BASE_URL + "/chat/" + targetUserId, {
-      withCredentials: true,
-    });
+  const chatContainerRef = useRef(null);
+  const prevScrollHeightRef = useRef(0);
 
-    console.log(chat.data.messages);
+  const fetchChatMessages = async (pageNumber = 1, append = false) => {
+    try {
+      setLoading(true);
+      const chat = await axios.get(
+        `${BASE_URL}/chat/${targetUserId}?page=${pageNumber}&limit=50`,
+        {
+          withCredentials: true,
+        }
+      );
 
-    const chatMessages = chat?.data?.messages.map((msg) => {
-      const { senderId, text } = msg;
-      return {
-        firstName: senderId?.firstName,
-        lastName: senderId?.lastName,
-        text,
-      };
-    });
-    setMessages(chatMessages);
+      console.log(chat.data);
+
+      const chatMessages = chat?.data?.messages.map((msg) => {
+        const { senderId, text } = msg;
+        return {
+          firstName: senderId?.firstName,
+          lastName: senderId?.lastName,
+          text,
+        };
+      });
+
+      if (append) {
+        // Append older messages at the beginning
+        setMessages((prev) => [...chatMessages, ...prev]);
+      } else {
+        // Replace messages (initial load)
+        setMessages(chatMessages);
+      }
+
+      setHasMore(chat.data.pagination.hasMore);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      setLoading(false);
+    }
   };
+
+  const loadMoreMessages = () => {
+    if (hasMore && !loading) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      
+      // Store current scroll height before loading more
+      if (chatContainerRef.current) {
+        prevScrollHeightRef.current = chatContainerRef.current.scrollHeight;
+      }
+      
+      fetchChatMessages(nextPage, true);
+    }
+  };
+
   useEffect(() => {
     fetchChatMessages();
   }, []);
+
+  // Restore scroll position after loading more messages
+  useEffect(() => {
+    if (page > 1 && chatContainerRef.current) {
+      const newScrollHeight = chatContainerRef.current.scrollHeight;
+      const scrollDiff = newScrollHeight - prevScrollHeightRef.current;
+      chatContainerRef.current.scrollTop = scrollDiff;
+    }
+  }, [messages]);
+
+  // Handle scroll to detect when user scrolls to top
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop } = chatContainerRef.current;
+      
+      // Load more when scrolled near the top (within 100px)
+      if (scrollTop < 100 && hasMore && !loading) {
+        loadMoreMessages();
+      }
+    }
+  };
 
   useEffect(() => {
     if (!userId) {
@@ -70,7 +132,27 @@ const Chat = () => {
   return (
     <div className="w-3/4 mx-auto border border-gray-600 m-5 h-[70vh] flex flex-col">
       <h1 className="p-5 border-b border-gray-600">Chat</h1>
-      <div className="flex-1 overflow-scroll p-5">
+      <div 
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-scroll p-5"
+      >
+        {loading && page === 1 && (
+          <div className="text-center text-gray-400">Loading messages...</div>
+        )}
+        
+        {hasMore && (
+          <div className="text-center mb-4">
+            <button
+              onClick={loadMoreMessages}
+              disabled={loading}
+              className="btn btn-sm btn-ghost"
+            >
+              {loading ? "Loading..." : "Load More Messages"}
+            </button>
+          </div>
+        )}
+
         {messages.map((msg, index) => {
           return (
             <div
