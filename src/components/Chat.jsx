@@ -1,23 +1,46 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useParams } from "react-router-dom";
 import { createSocketConnection } from "../utils/socket";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { BASE_URL } from "../utils/constants";
+import { BASE_URL, formatTime } from "../utils/constants";
 
 const Chat = () => {
   const { targetUserId } = useParams();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [isOnline, setIsOnline] = useState(false);
+  const [lastSeen, setLastSeen] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
   const user = useSelector((store) => store.user);
   const userId = user?._id;
 
   const chatContainerRef = useRef(null);
   const prevScrollHeightRef = useRef(0);
+  const isLoadingMoreRef = useRef(false);
+
+  const fetchOnlineStatus = async () => {
+    try {
+      const onlineStatus = await axios.get(
+        `${BASE_URL}/user/${targetUserId}/online-status`,
+        {
+          withCredentials: true,
+        }
+      );
+      const data = onlineStatus.data;
+      if (data.isOnline) {
+        setIsOnline(data.isOnline);
+      } else {
+        setLastSeen(data.lastSeenText);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user status:", err);
+    }
+  };
 
   const fetchChatMessages = async (pageNumber = 1, append = false) => {
     try {
@@ -32,20 +55,23 @@ const Chat = () => {
       console.log(chat.data);
 
       const chatMessages = chat?.data?.messages.map((msg) => {
-        const { senderId, text } = msg;
+        const { senderId, text, createdAt } = msg;
         return {
           firstName: senderId?.firstName,
           lastName: senderId?.lastName,
           text,
+          sentAt: formatTime(createdAt),
         };
       });
 
       if (append) {
         // Append older messages at the beginning
         setMessages((prev) => [...chatMessages, ...prev]);
+        isLoadingMoreRef.current = true;
       } else {
         // Replace messages (initial load)
         setMessages(chatMessages);
+        setShouldScrollToBottom(true);
       }
 
       setHasMore(chat.data.pagination.hasMore);
@@ -60,26 +86,36 @@ const Chat = () => {
     if (hasMore && !loading) {
       const nextPage = page + 1;
       setPage(nextPage);
-      
+
       // Store current scroll height before loading more
       if (chatContainerRef.current) {
         prevScrollHeightRef.current = chatContainerRef.current.scrollHeight;
       }
-      
+
       fetchChatMessages(nextPage, true);
     }
   };
 
   useEffect(() => {
     fetchChatMessages();
+    fetchOnlineStatus();
   }, []);
 
+  // Scroll to bottom on initial load or when new message arrives
+  useLayoutEffect(() => {
+    if (shouldScrollToBottom && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      setShouldScrollToBottom(false);
+    }
+  }, [messages, shouldScrollToBottom]);
+
   // Restore scroll position after loading more messages
-  useEffect(() => {
-    if (page > 1 && chatContainerRef.current) {
+  useLayoutEffect(() => {
+    if (isLoadingMoreRef.current && chatContainerRef.current) {
       const newScrollHeight = chatContainerRef.current.scrollHeight;
       const scrollDiff = newScrollHeight - prevScrollHeightRef.current;
       chatContainerRef.current.scrollTop = scrollDiff;
+      isLoadingMoreRef.current = false;
     }
   }, [messages]);
 
@@ -87,7 +123,7 @@ const Chat = () => {
   const handleScroll = () => {
     if (chatContainerRef.current) {
       const { scrollTop } = chatContainerRef.current;
-      
+
       // Load more when scrolled near the top (within 100px)
       if (scrollTop < 100 && hasMore && !loading) {
         loadMoreMessages();
@@ -100,6 +136,25 @@ const Chat = () => {
       return;
     }
     const socket = createSocketConnection();
+
+    // Listen for online/offline events
+    socket.on("userOnline", ({ userId }) => {
+      console.log("Online event received", userId);
+      if (userId === targetUserId) {
+        console.log(`User ${userId} is now online`);
+        setIsOnline(true);
+      }
+    });
+
+    socket.on("userOffline", ({ userId, lastSeen }) => {
+      console.log("Offline event received", userId);
+      if (userId === targetUserId) {
+        console.log(`User ${userId} is now offline`);
+        setIsOnline(false);
+        setLastSeen(lastSeen);
+      }
+    });
+
     // As soon as the page loaded, the socket connection is made and joinChat event is emitted
     socket.emit("joinChat", {
       firstName: user.firstName,
@@ -110,6 +165,7 @@ const Chat = () => {
     socket.on("messageReceived", ({ firstName, lastName, text }) => {
       console.log(firstName + " :  " + text);
       setMessages((messages) => [...messages, { firstName, lastName, text }]);
+      setShouldScrollToBottom(true);
     });
 
     return () => {
@@ -127,12 +183,19 @@ const Chat = () => {
       text: newMessage,
     });
     setNewMessage("");
+    setShouldScrollToBottom(true);
   };
 
   return (
     <div className="w-3/4 mx-auto border border-gray-600 m-5 h-[70vh] flex flex-col">
-      <h1 className="p-5 border-b border-gray-600">Chat</h1>
-      <div 
+      <div className="p-5 border-b border-gray-600">
+        <span>Chat</span>
+        <span className="ml-4 text-sm text-gray-400">
+          {isOnline ? "Online" : lastSeen && "Last seen: " + lastSeen}
+        </span>
+      </div>
+
+      <div
         ref={chatContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-scroll p-5"
@@ -140,7 +203,7 @@ const Chat = () => {
         {loading && page === 1 && (
           <div className="text-center text-gray-400">Loading messages...</div>
         )}
-        
+
         {hasMore && (
           <div className="text-center mb-4">
             <button
@@ -164,10 +227,9 @@ const Chat = () => {
             >
               <div className="chat-header">
                 {`${msg.firstName}  ${msg.lastName}`}
-                <time className="text-xs opacity-50"> 2 hours ago</time>
+                <time className="text-xs opacity-50 ml-1">{msg.sentAt}</time>
               </div>
               <div className="chat-bubble">{msg.text}</div>
-              <div className="chat-footer opacity-50">Seen</div>
             </div>
           );
         })}
