@@ -34,11 +34,15 @@ const Body = () => {
   }, []);
 
   return (
-    <>
-      <NavBar />
-      <Outlet />
-      {/* <Footer /> */}
-    </>
+    <div className="flex flex-col h-screen">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-base-300">
+        <NavBar />
+      </div>
+      <div className="flex-1 overflow-auto mt-24 mb-40 md:mb-24">
+        <Outlet />
+        <Footer />
+      </div>
+    </div>
   );
 };
 

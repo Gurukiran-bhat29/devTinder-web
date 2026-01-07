@@ -187,8 +187,8 @@ const Chat = () => {
   };
 
   return (
-    <div className="w-3/4 mx-auto border border-gray-600 m-5 h-[70vh] flex flex-col">
-      <div className="p-5 border-b border-gray-600">
+    <div className="w-full md:w-3/4 mx-auto border border-gray-600 m-2 md:m-5 h-[70vh] flex flex-col">
+      <div className="p-3 md:p-5 border-b border-gray-600">
         <span>Chat</span>
         <span className="ml-4 text-sm text-gray-400">
           {isOnline ? "Online" : lastSeen && "Last seen: " + lastSeen}
@@ -198,7 +198,7 @@ const Chat = () => {
       <div
         ref={chatContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-scroll p-5"
+        className="flex-1 overflow-scroll p-3 md:p-5"
       >
         {loading && page === 1 && (
           <div className="text-center text-gray-400">Loading messages...</div>
@@ -234,13 +234,13 @@ const Chat = () => {
           );
         })}
       </div>
-      <div className="p-5 border-t border-gray-600 flex items-center gap-2">
+      <div className="p-3 md:p-5 border-t border-gray-600 flex items-center gap-2">
         <input
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 border border-gray-500 text-white rounded p-2"
+          className="flex-1 border border-gray-500 text-white rounded p-2 text-sm md:text-base"
         ></input>
-        <button onClick={sendMessage} className="btn btn-secondary">
+        <button onClick={sendMessage} className="btn btn-secondary btn-sm md:btn-md">
           Send
         </button>
       </div>

@@ -10,12 +10,16 @@ const Premium = () => {
   }, []);
 
   const verifyPremiumUser = async () => {
-    const res = await axios.get(BASE_URL + "/premium/verify", {
-      withCredentials: true,
-    });
+    try {
+      const res = await axios.get(BASE_URL + "/premium/verify", {
+        withCredentials: true,
+      });
 
-    if (res.data.isPremiumUser) {
-      setIsUserPremium(true);
+      if (res.data.isPremiumUser) {
+        setIsUserPremium(true);
+      }
+    } catch (error) {
+      console.error("Error verifying premium user:", error);
     }
   };
 
@@ -48,18 +52,22 @@ const Premium = () => {
       handler: verifyPremiumUser,
     };
 
-    // This will open the Razorpay dialog box 
+    // This will open the Razorpay dialog box
     const rzp = new window.Razorpay(options);
     rzp.open();
   };
   return isUserPremium ? (
-    "You're are already a premium user"
+    <div className="text-center mt-10 px-4 text-lg md:text-xl font-semibold">
+      You're already a premium user
+    </div>
   ) : (
-    <div className="m-10">
-      <div className="flex w-full">
-        <div className="card bg-base-300 rounded-box grid h-80 flex-grow place-items-center">
-          <h1 className="font-bold text-3xl">Silver Membership</h1>
-          <ul>
+    <div className="m-4 md:m-10 px-4">
+      <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-0">
+        <div className="card bg-base-300 rounded-box grid h-auto lg:h-80 flex-grow place-items-center p-6">
+          <h1 className="font-bold text-2xl md:text-3xl mb-4">
+            Silver Membership
+          </h1>
+          <ul className="text-sm md:text-base mb-4 space-y-2">
             <li> - Chat with other people</li>
             <li> - 100 connection Requests per day</li>
             <li> - Blue Tick</li>
@@ -67,23 +75,25 @@ const Premium = () => {
           </ul>
           <button
             onClick={() => handleBuyClick("silver")}
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm md:btn-md"
           >
             Buy Silver
           </button>
         </div>
-        <div className="divider divider-horizontal">OR</div>
-        <div className="card bg-base-300 rounded-box grid h-80 flex-grow place-items-center">
-          <h1 className="font-bold text-3xl">Gold Membership</h1>
-          <ul>
+        <div className="divider lg:divider-horizontal">OR</div>
+        <div className="card bg-base-300 rounded-box grid h-auto lg:h-80 flex-grow place-items-center p-6">
+          <h1 className="font-bold text-2xl md:text-3xl mb-4">
+            Gold Membership
+          </h1>
+          <ul className="text-sm md:text-base mb-4 space-y-2">
             <li> - Chat with other people</li>
-            <li> - Inifiniye connection Requests per day</li>
+            <li> - Infinite connection Requests per day</li>
             <li> - Blue Tick</li>
             <li> - 6 months</li>
           </ul>
           <button
             onClick={() => handleBuyClick("gold")}
-            className="btn btn-primary"
+            className="btn btn-primary btn-sm md:btn-md"
           >
             Buy Gold
           </button>
