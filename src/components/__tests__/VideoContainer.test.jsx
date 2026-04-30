@@ -6,6 +6,9 @@ import VideoContainer from "../VideoContainer";
 import videoReducer from "../../utils/videoSlice";
 import searchReducer from "../../utils/searchSlice";
 import { MOCK_YOUTUBE_DATA } from "../../mocks/mockData";
+import axios from "axios";
+
+jest.mock("axios");
 
 const createTestStore = () =>
   configureStore({
@@ -26,11 +29,7 @@ const renderVideoContainer = () =>
 
 describe("VideoContainer", () => {
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve(MOCK_YOUTUBE_DATA),
-      })
-    );
+    axios.get.mockResolvedValueOnce({ data: MOCK_YOUTUBE_DATA });
   });
 
   it("should show shimmer loading initially then render video cards", async () => {
@@ -78,10 +77,10 @@ describe("VideoContainer", () => {
     renderVideoContainer();
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(axios.get).toHaveBeenCalledTimes(1);
     });
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(axios.get).toHaveBeenCalledWith(
       expect.stringContaining("youtube.googleapis.com/youtube/v3/videos")
     );
   });

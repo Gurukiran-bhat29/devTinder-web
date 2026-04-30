@@ -8,9 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs",
-    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs --coverage"
+    "test": "node node_modules/jest/bin/jest.js --config jest.config.cjs",
+    "test:watch": "node node_modules/jest/bin/jest.js --config jest.config.cjs --watch",
+    "test:coverage": "node node_modules/jest/bin/jest.js --config jest.config.cjs --coverage"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.1",

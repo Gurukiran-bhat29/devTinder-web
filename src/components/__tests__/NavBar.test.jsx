@@ -10,6 +10,7 @@ import videoReducer from "../../utils/videoSlice";
 import connectionReducer from "../../utils/connectionSlice";
 import requestReducer from "../../utils/requestSlice";
 import { MOCK_USER, MOCK_SUGGESTIONS_DATA } from "../../mocks/mockData";
+import axios from "axios";
 
 jest.mock("axios");
 
@@ -73,11 +74,7 @@ describe("NavBar", () => {
   it("should show search suggestions after typing", async () => {
     jest.useFakeTimers();
 
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve(MOCK_SUGGESTIONS_DATA),
-      })
-    );
+    axios.get.mockResolvedValueOnce({ data: MOCK_SUGGESTIONS_DATA });
 
     renderNavBar(MOCK_USER);
     const searchInput = screen.getByPlaceholderText("Search videos");

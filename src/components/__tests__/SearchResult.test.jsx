@@ -2,6 +2,9 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import SearchResult from "../SearchResult";
 import { MOCK_YOUTUBE_SEARCH_DATA } from "../../mocks/mockData";
+import axios from "axios";
+
+jest.mock("axios");
 
 const renderSearchResult = (query = "react") =>
   render(
@@ -12,11 +15,7 @@ const renderSearchResult = (query = "react") =>
 
 describe("SearchResult", () => {
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve(MOCK_YOUTUBE_SEARCH_DATA),
-      })
-    );
+    axios.get.mockResolvedValueOnce({ data: MOCK_YOUTUBE_SEARCH_DATA });
   });
 
   it("should show shimmer initially then render search results", async () => {
@@ -49,13 +48,13 @@ describe("SearchResult", () => {
     renderSearchResult("javascript");
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(axios.get).toHaveBeenCalledTimes(1);
     });
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(axios.get).toHaveBeenCalledWith(
       expect.stringContaining("search?part=snippet")
     );
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(axios.get).toHaveBeenCalledWith(
       expect.stringContaining("javascript")
     );
   });
