@@ -38,10 +38,9 @@ const NavBar = () => {
 
   const getSearchSuggestions = async () => {
     try {
-      const data = await fetch(
+      const { data: jsonData } = await axios.get(
         YOUTUBE_SEARCH_SUGGESTIONS_API + encodeURIComponent(searchQuery)
       );
-      const jsonData = await data.json();
       setSuggestions(jsonData[1]);
       dispatch(cacheResults({ [searchQuery]: jsonData[1] }));
     } catch {

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { YOUTUBE_VIDEO_API } from "../utils/videoConstants";
@@ -15,8 +16,7 @@ const VideoContainer = () => {
   }, []);
 
   const getVideos = async () => {
-    const data = await fetch(YOUTUBE_VIDEO_API);
-    const jsonData = await data.json();
+    const { data: jsonData } = await axios.get(YOUTUBE_VIDEO_API);
     if (jsonData.items && jsonData.items.length > 0) {
       dispatch(saveVideos(jsonData.items));
     }

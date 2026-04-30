@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import axios from "axios";
 import {
   YOUTUBE_SEARCH_API_PART1,
   YOUTUBE_SEARCH_API_PART2,
@@ -18,10 +19,9 @@ const SearchResult = () => {
   const getSearchResults = async () => {
     const query = searchParam.get("search_query");
     if (!query) return;
-    const response = await fetch(
+    const { data: jsonResponse } = await axios.get(
       YOUTUBE_SEARCH_API_PART1 + encodeURIComponent(query) + YOUTUBE_SEARCH_API_PART2
     );
-    const jsonResponse = await response.json();
     if (jsonResponse.items && jsonResponse.items.length > 0) {
       setSearchVideos(jsonResponse.items);
     }
